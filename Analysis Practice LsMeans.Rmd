@@ -1,0 +1,55 @@
+---
+title: "LS Means Analysis Practice Notebook"
+output: html_notebook
+---
+
+```{r}
+library(lme4)
+library(emmeans)
+cmod1 <- lmer(log(Mean_Object_Counts)~ 1 + Metadata_Stiffness + Metadata_Time + (1|Metadata_Batch) + (1|Metadata_Stiffness:Metadata_Time:Metadata_Batch)+
+                Metadata_ECMs + Metadata_Stiffness:Metadata_Time + Metadata_Stiffness:Metadata_ECMs + Metadata_Time:Metadata_ECMs + Metadata_ECMs:Metadata_Stiffness:Metadata_Time, 
+              data = Econtrols)
+summary(cmod1)
+anova(cmod1)
+```
+```{r}
+StiffnessPvalue = 1-pf(46.3876, 1, 4)
+TimePValue = 1 - pf(1.5553,1,4)
+ECMsPValue = 1 - pf(36.7310, 7, 60)
+StiffTime = 1 - pf(1.9080, 1, 4)
+StiffECM = 1 -pf(5.5250, 7, 60)
+TimeECM = 1 - pf(4.4364, 7, 60)
+StiffTimeECM = 1 - pf(1.5719,7,60)
+
+StiffnessPvalue
+TimePValue
+ECMsPValue
+StiffTime
+StiffECM
+TimeECM
+StiffTimeECM
+```
+
+```{r}
+mod2 <-aov(log(Mean_Object_Counts) ~ 1 + Metadata_Stiffness + Metadata_Time + Metadata_Stiffness*Metadata_Time + (Metadata_Stiffness:Metadata_Time)%in%Metadata_Batch + Metadata_ECMs  + Metadata_Stiffness*Metadata_ECMs + Metadata_Time*Metadata_ECMs + Metadata_ECMs*Metadata_Stiffness*Metadata_Time, data = Econtrols
+    )
+summary(mod2)
+```
+
+```{r}
+interaction.plot(Econtrols$Metadata_Stiffness, Econtrols$Metadata_ECMs, log(Econtrols$Mean_Object_Counts), col = 1:9, trace.label = "ECM", ylab = "log(Number of Cells on Island)", xlab = "Stiffness")
+interaction.plot(Econtrols$Metadata_Stiffness, Econtrols$Metadata_Time, log(Econtrols$Mean_Object_Counts), col = 1:9, trace.label = "Time", ylab = "log(Number of Cells on Island)", xlab = "Stiffness")
+interaction.plot(Econtrols$Metadata_Time, Econtrols$Metadata_ECMs, log(Econtrols$Mean_Object_Counts), col = 1:9, trace.label = "ECM", ylab = "log(Number of Cells on Island)", xlab = "Time")
+interaction.plot(Econtrols$Metadata_ECMs, Econtrols$Metadata_Time, log(Econtrols$Mean_Object_Counts), col = 1:9, trace.label = "Time", ylab = "log(Number of Cells on Island)", xlab = " ", las = 2)
+interaction.plot(Econtrols$Metadata_ECMs, Econtrols$Metadata_Stiffness, log(Econtrols$Mean_Object_Counts), col = 1:9, trace.label = "Stiffness", ylab = "log(Number of Cells on Island)", xlab = " ", las = 2)
+```
+
+```{r}
+require(pbkrtest)
+lsmeans(cmod1, pairwise ~ Metadata_ECMs)
+lsmeans(cmod1, pairwise ~ Metadata_Stiffness)
+lsmeans(cmod1, pairwise ~ Metadata_Time)
+lsmeans(cmod1, pairwise ~ Metadata_ECMs | Metadata_Stiffness)
+lsmeans(cmod1, pairwise ~ Metadata_ECMs | Metadata_Time)
+```
+

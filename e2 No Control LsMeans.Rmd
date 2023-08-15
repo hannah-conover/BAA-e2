@@ -1,0 +1,519 @@
+---
+title: "e2 No Control LsMeans"
+output: html_notebook
+---
+
+```{r}
+library(lme4)
+library(emmeans)
+ncmod1 <- lmer(log(Mean_Object_Counts)~ 1 + Metadata_Stiffness + Metadata_Time + (1|Metadata_Batch) + (1|Metadata_Stiffness:Metadata_Time:Metadata_Batch)+
+                Metadata_ECMs + Metadata_Ratio + Metadata_Stiffness:Metadata_Time + Metadata_Ratio:Metadata_ECMs + Metadata_Stiffness:Metadata_ECMs + Metadata_Stiffness:Metadata_Ratio + Metadata_Time:Metadata_ECMs + Metadata_Time:Metadata_Ratio + Metadata_ECMs:Metadata_Stiffness:Metadata_Time + Metadata_ECMs:Metadata_Ratio:Metadata_Time + Metadata_ECMs:Metadata_Ratio:Metadata_Stiffness + Metadata_Ratio:Metadata_Stiffness:Metadata_Time + Metadata_ECMs:Metadata_Stiffness:Metadata_Time:Metadata_Ratio, 
+              data = ds_e_phenonocont)
+summary(ncmod1)
+anova(ncmod1)
+```
+
+```{r}
+library(GAD)
+EStiffness <- as.fixed(ds_e_phenonocont$Metadata_Stiffness)
+EBatch <- as.random(ds_e_phenonocont$Metadata_Batch)
+ERatio <- as.fixed(ds_e_phenonocont$Metadata_Ratio)
+EECMs <- as.fixed(ds_e_phenonocont$Metadata_ECMs)
+ETime <- as.fixed(ds_e_phenonocont$Metadata_Time)
+
+ncaov <- aov(log(Mean_Object_Counts) ~ EStiffness  + ERatio +EECMs + ETime  + (EStiffness:ETime)%in%EBatch+
+               EStiffness*ERatio + EStiffness*EECMs + EStiffness*ETime + ETime*EECMs + ERatio*ETime + ERatio*EECMs + 
+               EStiffness*ERatio*ETime + EStiffness*ERatio*EECMs + EStiffness*EECMs*ETime + ERatio*ETime*EECMs +
+               EStiffness*ERatio*ETime*EECMs, data = ds_e_phenonocont)
+summary(ncaov)
+```
+
+```{r}
+StiffnessPvalue = 1-pf(254.7750, 1, 4)
+TimePValue = 1 - pf(0.0036,1,4)
+ECMsPValue = 1 - pf(35.2947, 27, 661)
+RatioPValue = 1 - pf(16.1200, 2, 661)
+StiffTime = 1 - pf(17.8828, 1, 4)
+RatioECM = 1 - pf(1.6590, 54, 661)
+StiffECM = 1 -pf(2.4386, 27, 661)
+StiffRatio = 1 - pf(2.1399, 2, 661)
+TimeECM = 1 - pf(3.6072, 27, 661)
+TimeRatio = 1 - pf(1.5458, 2,661)
+StiffTimeECM = 1 - pf(0.9226, 27,661)
+TimeECMRatio = 1 - pf(1.1494, 108, 661)
+StiffTimeRatio = 1 - pf(2.3924, 2, 661)
+StiffTimeECMsRatio = 1 - pf(0.8490, 54, 661)
+StiffECMRatio = 1 - pf(0.7209, 54, 661)
+
+StiffnessPvalue
+TimePValue
+ECMsPValue
+RatioPValue
+StiffTime
+StiffECM
+StiffRatio
+TimeECM
+TimeRatio
+StiffTimeECM
+TimeECMRatio
+StiffTimeRatio
+StiffTimeECMsRatio
+RatioECM
+StiffECMRatio
+```
+```{r}
+#Stiffness x ECMs
+interaction.plot(ds_e_phenonocont$Metadata_Stiffness, ds_e_phenonocont$Metadata_ECMs, log(ds_e_phenonocont$Mean_Object_Counts), col = 1:9, trace.label = "ECM", ylab = "log(Number of Cells on Island)", xlab = "Stiffness", legend = FALSE)
+
+#Stiffness x Time
+interaction.plot(ds_e_phenonocont$Metadata_Stiffness, ds_e_phenonocont$Metadata_Time, log(ds_e_phenonocont$Mean_Object_Counts), col = 1:9, trace.label = "Time", ylab = "log(Number of Cells on Island)", xlab = "Stiffness")
+
+#Time x ECMs
+interaction.plot(ds_e_phenonocont$Metadata_Time, ds_e_phenonocont$Metadata_ECMs, log(ds_e_phenonocont$Mean_Object_Counts), col = 1:9, trace.label = "ECM", ylab = "log(Number of Cells on Island)", xlab = "Time", legend = FALSE)
+
+#ECMs x Time
+interaction.plot(ds_e_phenonocont$Metadata_ECMs, ds_e_phenonocont$Metadata_Time, log(ds_e_phenonocont$Mean_Object_Counts), col = 1:9, trace.label = "Time", ylab = "log(Number of Cells on Island)", las = 2)
+
+#ECMS x Stiffness
+interaction.plot(ds_e_phenonocont$Metadata_ECMs, ds_e_phenonocont$Metadata_Stiffness, log(ds_e_phenonocont$Mean_Object_Counts), col = 1:9, trace.label = "Stiffness", ylab = "log(Number of Cells on Island)", las = 2)
+
+#ECMs x Ratio
+interaction.plot(ds_e_phenonocont$Metadata_ECMs, ds_e_phenonocont$Metadata_Ratio, log(ds_e_phenonocont$Mean_Object_Counts), col = 1:9, trace.label = "Ratio", ylab = "log(Number of Cells on Island)", xlab = "ECMs", las = 2)
+
+#Stiffness x Ratio
+interaction.plot(ds_e_phenonocont$Metadata_Stiffness, ds_e_phenonocont$Metadata_Ratio, log(ds_e_phenonocont$Mean_Object_Counts), col = 1:9, trace.label = "Ratio", ylab = "log(Number of Cells on Island)", xlab = "Stiffness")
+
+
+```
+
+
+```{r}
+par(mfrow = c(1,2))
+
+Stiff1kPa <- subset(ds_e_phenonocont, Metadata_Stiffness == "1 kPa")
+
+interaction.plot(Stiff1kPa$Metadata_ECMs, Stiff1kPa$Metadata_Ratio, log(Stiff1kPa$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "ECMs", ylab = "log(Number of Cells Per Island)", las = 2, main = "1 kPa")
+
+Stiff25kPa <- subset(ds_e_phenonocont, Metadata_Stiffness == "25 kPa")
+
+interaction.plot(Stiff25kPa$Metadata_ECMs, Stiff25kPa$Metadata_Ratio, log(Stiff25kPa$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "ECMs", ylab = "log(Number of Cells Per Island)", las = 2, main = "25 kPa")
+
+
+par(mfrow = c(1,3))
+
+Ratio25 <- subset(ds_e_phenonocont, Metadata_Ratio == "25:75")
+
+interaction.plot(Ratio25$Metadata_ECMs, Ratio25$Metadata_Stiffness, log(Ratio25$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "ECMs", ylab = "log(Number of Cells Per Island)", las = 2, main = "25:75")
+
+Ratio50 <- subset(ds_e_phenonocont, Metadata_Ratio == "50:50")
+
+interaction.plot(Ratio50$Metadata_ECMs, Ratio50$Metadata_Stiffness, log(Ratio50$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "ECMs", ylab = "log(Number of Cells Per Island)", las = 2, main = "50:50")
+
+Ratio75 <- subset(ds_e_phenonocont, Metadata_Ratio == "75:25")
+
+interaction.plot(Ratio75$Metadata_ECMs, Ratio75$Metadata_Stiffness, log(Ratio75$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "ECMs", ylab = "log(Number of Cells Per Island)", las = 2, main = "75:25")
+
+
+par(mfrow = c(1,2))
+
+Stiff1kPa <- subset(ds_e_phenonocont, Metadata_Stiffness == "1 kPa")
+
+interaction.plot(Stiff1kPa$Metadata_Ratio, Stiff1kPa$Metadata_ECMs, log(Stiff1kPa$Mean_Object_Counts), col = 1:29, trace.label = "ECMs", xlab = "Ratio", ylab = "log(Number of Cells Per Island)", las = 2, main = "1 kPa")
+
+Stiff25kPa <- subset(ds_e_phenonocont, Metadata_Stiffness == "25 kPa")
+
+interaction.plot(Stiff25kPa$Metadata_Ratio, Stiff25kPa$Metadata_ECMs, log(Stiff25kPa$Mean_Object_Counts), col = 1:29, trace.label = "ECMs", xlab = "Ratio", ylab = "log(Number of Cells Per Island)", las = 2, main = "25 kPa")
+
+
+```
+
+
+```{r}
+C1C4 <- subset(ds_e_phenonocont, Metadata_ECMs =="Collagen ICollagen IV")      
+C1D <- subset(ds_e_phenonocont, Metadata_ECMs == "Collagen IDecorin")         
+C1F <-subset(ds_e_phenonocont, Metadata_ECMs == "Collagen IFibronectin")      
+C1HA <-subset(ds_e_phenonocont, Metadata_ECMs == "Collagen IHyaluronic Acid")  
+C1L <- subset(ds_e_phenonocont, Metadata_ECMs == "Collagen ILaminin")         
+C1O <- subset(ds_e_phenonocont, Metadata_ECMs == "Collagen IOsteopontin")      
+C1T <- subset(ds_e_phenonocont, Metadata_ECMs == "Collagen ITenascin C" )      
+C4D <- subset(ds_e_phenonocont, Metadata_ECMs == "Collagen IVDecorin")          
+C4F <- subset(ds_e_phenonocont, Metadata_ECMs == "Collagen IVFibronectin")      
+C4HA <- subset(ds_e_phenonocont, Metadata_ECMs == "Collagen IVHyaluronic Acid") 
+C4L <- subset(ds_e_phenonocont, Metadata_ECMs == "Collagen IVLaminin")          
+C4O <- subset(ds_e_phenonocont, Metadata_ECMs == "Collagen IVOsteopontin")      
+C4T <- subset(ds_e_phenonocont, Metadata_ECMs == "Collagen IVTenascin C")       
+DF <- subset(ds_e_phenonocont, Metadata_ECMs == "DecorinFibronectin")          
+HAD <- subset(ds_e_phenonocont, Metadata_ECMs == "Hyaluronic AcidDecorin")     
+HAF  <- subset(ds_e_phenonocont, Metadata_ECMs == "Hyaluronic AcidFibronectin") 
+HAO <- subset(ds_e_phenonocont, Metadata_ECMs == "Hyaluronic AcidOsteopontin") 
+LD <- subset(ds_e_phenonocont, Metadata_ECMs == "LamininDecorin")             
+LF <- subset(ds_e_phenonocont, Metadata_ECMs == "LamininFibronectin")         
+LHA <- subset(ds_e_phenonocont, Metadata_ECMs == "LamininHyaluronic Acid")    
+LO <- subset(ds_e_phenonocont, Metadata_ECMs == "LamininOsteopontin")         
+LT <- subset(ds_e_phenonocont, Metadata_ECMs == "LamininTenascin C")          
+OD <- subset(ds_e_phenonocont, Metadata_ECMs == "OsteopontinDecorin")         
+OF <- subset(ds_e_phenonocont, Metadata_ECMs == "OsteopontinFibronectin")     
+TD <- subset(ds_e_phenonocont, Metadata_ECMs == "Tenascin CDecorin")         
+TF <- subset(ds_e_phenonocont, Metadata_ECMs == "Tenascin CFibronectin")      
+THA <- subset(ds_e_phenonocont, Metadata_ECMs == "Tenascin CHyaluronic Acid")  
+TO <- subset(ds_e_phenonocont, Metadata_ECMs == "Tenascin COsteopontin")
+
+par(mfrow= c(2,2))
+
+interaction.plot(C1C4$Metadata_Stiffness, C1C4$Metadata_Ratio, log(C1C4$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)", main = "Collagen ICollagen IV")
+
+interaction.plot(C1D$Metadata_Stiffness, C1D$Metadata_Ratio, log(C1D$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)", main = "Collagen IDecorin")
+
+interaction.plot(C1F$Metadata_Stiffness, C1F$Metadata_Ratio, log(C1F$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)", main = "Collagen IFibronectin")
+
+interaction.plot(C1HA$Metadata_Stiffness, C1HA$Metadata_Ratio, log(C1HA$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IHyaluronic Acid")
+
+par(mfrow= c(2,2))
+interaction.plot(C1L$Metadata_Stiffness, C1L$Metadata_Ratio, log(C1L$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen ILaminin")
+
+interaction.plot(C1O$Metadata_Stiffness, C1O$Metadata_Ratio, log(C1O$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IOsteopontin")
+
+interaction.plot(C1T$Metadata_Stiffness, C1T$Metadata_Ratio, log(C1T$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen ITenascin C")
+
+interaction.plot(C4D$Metadata_Stiffness, C4D$Metadata_Ratio, log(C4D$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVDecorin")
+
+par(mfrow= c(2,2))
+interaction.plot(C4F$Metadata_Stiffness, C4F$Metadata_Ratio, log(C4F$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVFibronectin")
+
+interaction.plot(C4HA$Metadata_Stiffness, C4HA$Metadata_Ratio, log(C4HA$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVHyaluronic Acid")
+
+interaction.plot(C4L$Metadata_Stiffness, C4L$Metadata_Ratio, log(C4L$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVLaminin")
+
+interaction.plot(C4O$Metadata_Stiffness, C4O$Metadata_Ratio, log(C4O$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVOsteopontin")
+
+par(mfrow= c(2,2))
+interaction.plot(C4T$Metadata_Stiffness, C4T$Metadata_Ratio, log(C4T$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVTenascin C")
+
+interaction.plot(DF$Metadata_Stiffness, DF$Metadata_Ratio, log(DF$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "DecorinFibronectin")
+
+interaction.plot(HAD$Metadata_Stiffness, HAD$Metadata_Ratio, log(HAD$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Hyaluronic AcidDecorin")
+
+interaction.plot(HAF$Metadata_Stiffness, HAF$Metadata_Ratio, log(HAF$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Hyaluronic AcidFibronectin")
+
+par(mfrow= c(2,2))
+interaction.plot(HAO$Metadata_Stiffness, HAO$Metadata_Ratio, log(HAO$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Hyaluronic AcidOsteopontin")
+
+interaction.plot(LD$Metadata_Stiffness, LD$Metadata_Ratio, log(LD$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "LamininDecorin")
+
+interaction.plot(LF$Metadata_Stiffness, LF$Metadata_Ratio, log(LF$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "LamininFibronectin")
+
+interaction.plot(LHA$Metadata_Stiffness, LHA$Metadata_Ratio, log(LHA$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "LamininHyaluronic Acid")
+
+par(mfrow= c(2,2))
+interaction.plot(LO$Metadata_Stiffness, LO$Metadata_Ratio, log(LO$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "LamininOsteopontin")
+
+interaction.plot(LT$Metadata_Stiffness, LT$Metadata_Ratio, log(LT$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "LamininTenascin C")
+
+interaction.plot(OD$Metadata_Stiffness, OD$Metadata_Ratio, log(OD$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "OsteopontinDecorin")
+
+interaction.plot(OF$Metadata_Stiffness, OF$Metadata_Ratio, log(OF$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "OsteopontinFibronectin")
+
+par(mfrow= c(2,2))
+interaction.plot(TD$Metadata_Stiffness, TD$Metadata_Ratio, log(TD$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Tenascin CDecorin")
+
+interaction.plot(TF$Metadata_Stiffness, TF$Metadata_Ratio, log(TF$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Tenascin CFibronectin")
+
+interaction.plot(THA$Metadata_Stiffness, THA$Metadata_Ratio, log(THA$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Tenascin CHyaluronic Acid")
+
+interaction.plot(TO$Metadata_Stiffness, TO$Metadata_Ratio, log(TO$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Tenascin COsteopontin")
+
+```
+
+```{r}
+par(mfrow= c(2,2))
+
+interaction.plot(C1C4$Metadata_Ratio, C1C4$Metadata_Stiffness, log(C1C4$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)", main = "Collagen ICollagen IV")
+
+interaction.plot(C1D$Metadata_Ratio, C1D$Metadata_Stiffness, log(C1D$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)", main = "Collagen IDecorin")
+
+interaction.plot(C1F$Metadata_Ratio, C1F$Metadata_Stiffness, log(C1F$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)", main = "Collagen IFibronectin")
+
+interaction.plot(C1HA$Metadata_Ratio, C1HA$Metadata_Stiffness, log(C1HA$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Collagen IHyaluronic Acid")
+
+par(mfrow= c(2,2))
+interaction.plot(C1L$Metadata_Ratio, C1L$Metadata_Stiffness, log(C1L$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Collagen ILaminin")
+
+interaction.plot(C1O$Metadata_Ratio, C1O$Metadata_Stiffness, log(C1O$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Collagen IOsteopontin")
+
+interaction.plot(C1T$Metadata_Ratio, C1T$Metadata_Stiffness, log(C1T$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Collagen ITenascin C")
+
+interaction.plot(C4D$Metadata_Ratio, C4D$Metadata_Stiffness, log(C4D$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVDecorin")
+
+par(mfrow= c(2,2))
+interaction.plot(C4F$Metadata_Ratio, C4F$Metadata_Stiffness, log(C4F$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVFibronectin")
+
+interaction.plot(C4HA$Metadata_Ratio, C4HA$Metadata_Stiffness, log(C4HA$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVHyaluronic Acid")
+
+interaction.plot(C4L$Metadata_Ratio, C4L$Metadata_Stiffness, log(C4L$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVLaminin")
+
+interaction.plot(C4O$Metadata_Ratio, C4O$Metadata_Stiffness, log(C4O$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVOsteopontin")
+
+par(mfrow= c(2,2))
+interaction.plot(C4T$Metadata_Ratio, C4T$Metadata_Stiffness, log(C4T$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVTenascin C")
+
+interaction.plot(DF$Metadata_Ratio, DF$Metadata_Stiffness, log(DF$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "DecorinFibronectin")
+
+interaction.plot(HAD$Metadata_Ratio, HAD$Metadata_Stiffness, log(HAD$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Hyaluronic AcidDecorin")
+
+interaction.plot(HAF$Metadata_Ratio, HAF$Metadata_Stiffness, log(HAF$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Hyaluronic AcidFibronectin")
+
+par(mfrow= c(2,2))
+interaction.plot(HAO$Metadata_Ratio, HAO$Metadata_Stiffness, log(HAO$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Hyaluronic AcidOsteopontin")
+
+interaction.plot(LD$Metadata_Ratio, LD$Metadata_Stiffness, log(LD$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "LamininDecorin")
+
+interaction.plot(LF$Metadata_Ratio, LF$Metadata_Stiffness, log(LF$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "LamininFibronectin")
+
+interaction.plot(LHA$Metadata_Ratio, LHA$Metadata_Stiffness, log(LHA$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "LamininHyaluronic Acid")
+
+par(mfrow= c(2,2))
+interaction.plot(LO$Metadata_Ratio, LO$Metadata_Stiffness, log(LO$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "LamininOsteopontin")
+
+interaction.plot(LT$Metadata_Ratio, LT$Metadata_Stiffness, log(LT$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "LamininTenascin C")
+
+interaction.plot(OD$Metadata_Ratio, OD$Metadata_Stiffness, log(OD$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "OsteopontinDecorin")
+
+interaction.plot(OF$Metadata_Ratio, OF$Metadata_Stiffness, log(OF$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "OsteopontinFibronectin")
+
+par(mfrow= c(2,2))
+interaction.plot(TD$Metadata_Ratio, TD$Metadata_Stiffness, log(TD$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Tenascin CDecorin")
+
+interaction.plot(TF$Metadata_Ratio, TF$Metadata_Stiffness, log(TF$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Tenascin CFibronectin")
+
+interaction.plot(THA$Metadata_Ratio, THA$Metadata_Stiffness, log(THA$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Tenascin CHyaluronic Acid")
+
+interaction.plot(TO$Metadata_Ratio, TO$Metadata_Stiffness, log(TO$Mean_Object_Counts), col = 2:4, trace.label = "Stiffness", xlab = "Ratio", ylab = "log(Number of Cells Per Island)",  main = "Tenascin COsteopontin")
+```
+
+```{r}
+require(pbkrtest)
+ECMSPairwise <- lsmeans(ncmod1, pairwise ~ Metadata_ECMs)
+StiffnessPairwise <- lsmeans(ncmod1, pairwise ~ Metadata_Stiffness)
+RatioPairwise <- lsmeans(ncmod1, pairwise ~ Metadata_Ratio)
+ECMbyStiffPair <- lsmeans(ncmod1, pairwise ~ Metadata_ECMs | Metadata_Stiffness)
+ECMbyTimePair <- lsmeans(ncmod1, pairwise ~ Metadata_ECMs | Metadata_Time)
+StiffbyTimePair <- lsmeans(ncmod1, pairwise ~ Metadata_Stiffness | Metadata_Time)
+ECMbyRatioPair <- lsmeans(ncmod1, pairwise ~ Metadata_ECMs | Metadata_Ratio)
+
+ECMSPairwisedf = as.data.frame(ECMSPairwise$contrasts)
+StiffnessPairwisedf = as.data.frame(StiffnessPairwise$contrasts)
+RatioPairwisedf = as.data.frame(RatioPairwise$contrasts)
+ECMbyStiffPairdf = as.data.frame(ECMbyStiffPair$contrasts)
+ECMbyTimePairdf = as.data.frame(ECMbyTimePair$contrasts)
+StiffbyTimePairdf = as.data.frame(StiffbyTimePair$contrasts)
+ECMbyRatioPairdf = as.data.frame(ECMbyRatioPair$contrasts)
+
+write.csv2(ECMSPairwisedf, file = "H:/Lab_members/Hannah/BA e2/BA e2/R Analysis BAe2/ECMsPairwise.csv" )
+write.csv2(StiffnessPairwisedf, file = "H:/Lab_members/Hannah/BA e2/BA e2/R Analysis BAe2/StiffnessPairwise.csv")
+write.csv2(RatioPairwisedf, file = "H:/Lab_members/Hannah/BA e2/BA e2/R Analysis BAe2/RatioPairwise.csv")
+write.csv2(ECMbyStiffPairdf, file = "H:/Lab_members/Hannah/BA e2/BA e2/R Analysis BAe2/ECMbyStiffPair.csv")
+write.csv2(ECMbyTimePairdf, file = "H:/Lab_members/Hannah/BA e2/BA e2/R Analysis BAe2/ECMbyTimePair.csv")
+write.csv2(StiffbyTimePairdf, file = "H:/Lab_members/Hannah/BA e2/BA e2/R Analysis BAe2/StiffbyTimePair.csv")
+write.csv2(ECMbyRatioPairdf, file = "H:/Lab_members/Hannah/BA e2/BA e2/R Analysis BAe2/ECMbyRatioPair.csv")
+
+```
+
+```{r}
+require(ggplot2)
+ECMPairwiseHM <-ggplot(data = ECMsPairwiseSplitUpdated,
+                         aes(x= ECM_Combo_2,
+                             y = ECM_Combo_1,
+                             fill = p.value))+
+  facet_wrap(vars(Metadata_Stiffness)) +
+  theme(axis.title.x = element_text(size= 30),
+        axis.text.x = element_text(angle = 90, size= 15),
+        axis.title.y = element_text(size= 30),
+        axis.text.y = element_text(size= 15),
+        strip.text =  element_text(size = 30),
+        plot.title = element_text(size = 30))+
+  geom_tile() +
+  xlab("ECM Combo 1") +
+  ylab("ECM Combo 2")+
+  labs(title = "P-value")
+ggsave(filename = "plots/ECMPairP-valueHM.png",
+       width = 15, height= 10)
+
+
+ggplot(data = ECMsPairwiseSplitUpdated,
+                         aes(x= ECM_Combo_2,
+                             y = ECM_Combo_1,
+                             fill = p.value))+
+  #facet_wrap(vars(ECM_Combo_1)) +
+  geom_tile() +
+  xlab("ECM Combo 1") +
+  ylab("ECM Combo 2")+
+  labs(title = "P-value")
+
+
+ggplot(data = ECMsPairwiseSplitUpdated,
+                         aes(x= ECM_Combo_2,
+                             group = p.value,
+                             fill = p.value,
+                             color = ECM_Combo_1))+
+  geom_bar() +
+  xlab("ECM Combo 1") +
+  ylab("ECM Combo 2")+
+  labs(title = "P-value")
+```
+
+
+```{r}
+#Stiffness x ECMs
+interaction.plot(ds_e_phenonocontabb$Metadata_Stiffness, ds_e_phenonocontabb$Metadata_ECMs_Abb, log(ds_e_phenonocontabb$Mean_Object_Counts), col = 1:9, trace.label = "ECM", ylab = "log(Number of Cells on Island)", xlab = "Stiffness", legend = FALSE)
+
+#Stiffness x Time
+interaction.plot(ds_e_phenonocont$Metadata_Stiffness, ds_e_phenonocont$Metadata_Time, log(ds_e_phenonocont$Mean_Object_Counts), col = 1:9, trace.label = "Time", ylab = "log(Number of Cells on Island)", xlab = "Stiffness")
+
+#Time x ECMs
+interaction.plot(ds_e_phenonocontabb$Metadata_Time, ds_e_phenonocontabb$Metadata_ECMs_Abb, log(ds_e_phenonocontabb$Mean_Object_Counts), col = 1:9, trace.label = "ECM", ylab = "log(Number of Cells on Island)", xlab = "Time", legend = FALSE)
+
+#ECMs x Time
+interaction.plot(ds_e_phenonocontabb$Metadata_ECMs_Abb, ds_e_phenonocontabb$Metadata_Time, log(ds_e_phenonocontabb$Mean_Object_Counts), col = 1:9, trace.label = "Time", ylab = "log(Number of Cells on Island)", xlab = "Time", las = 1, xaxt = "n")
+
+#ECMS x Stiffness
+interaction.plot(ds_e_phenonocontabb$Metadata_ECMs_Abb, ds_e_phenonocontabb$Metadata_Stiffness, log(ds_e_phenonocontabb$Mean_Object_Counts), col = 1:9, trace.label = "Stiffness", ylab = "log(Number of Cells on Island)", las = 1, xlab = "ECMs", xaxt = "n")
+
+#ECMs x Ratio
+interaction.plot(ds_e_phenonocontabb$Metadata_ECMs_Abb, ds_e_phenonocontabb$Metadata_Ratio, log(ds_e_phenonocontabb$Mean_Object_Counts), col = 1:9, trace.label = "Ratio", ylab = "log(Number of Cells on Island)", xlab = "ECMs", las = 1.5, xaxt = "n")
+
+#Stiffness x Ratio
+interaction.plot(ds_e_phenonocontabb$Metadata_Stiffness, ds_e_phenonocontabb$Metadata_Ratio, log(ds_e_phenonocontabb$Mean_Object_Counts), col = 1:9, trace.label = "Ratio", ylab = "log(Number of Cells on Island)", xlab = "Stiffness")
+```
+
+```{r}
+require(ggpubr)
+require(ggplot2)  
+  
+ggplot(data = ECMSPairwiselsAbb)  + 
+  geom_segment( aes(x = Metadata_ECMs_Abb, xend = Metadata_ECMs_Abb, y = lower.CL, yend = upper.CL), color = "blue") +
+  geom_point( aes(x = Metadata_ECMs_Abb, y = lower.CL), color="darkblue", shape = 1) + 
+  geom_point( aes(x = Metadata_ECMs_Abb, y = upper.CL), color="darkblue", shape = 1) + 
+  geom_point( aes(x = Metadata_ECMs_Abb, y = lsmean), color="black", shape = 4) + 
+  xlab("ECM Conditions")+ 
+  ylab("Least Square Mean") + 
+  labs(title="Least Square Mean Difference") +
+  theme_bw()+
+  theme(text = element_text(size = 30)) +
+  #stat_pvalue_manual(ECMsPvaluestatsig, label = "p.value", y.position = 6, step.increase = 0.1, hide.ns = TRUE) +
+  coord_flip()
+
+ggsave(filename = "plots/ECMlsmAbb.png",
+       width = 10, height= 10)
+
+## ECM:Ratio
+require(ggpubr)
+require(ggplot2)  
+
+ECMSRatioPairwisels = as.data.frame(ECMbyRatioPair$lsmeans)
+write.csv(ECMSRatioPairwisels,"H:/Lab_members/Hannah/BA e2/BA e2/R Analysis BAe2/ECMbyRatioPairls.csv")
+
+
+ggplot(data = ECMbyRatioPairls)  + 
+  geom_segment( aes(x = Metadata_ECMs_Abb, xend = Metadata_ECMs_Abb, y = lower.CL, yend = upper.CL), color = "blue") +
+  geom_point( aes(x = Metadata_ECMs_Abb, y = lower.CL), color="darkblue", shape = 1) + 
+  geom_point( aes(x = Metadata_ECMs_Abb, y = upper.CL), color="darkblue", shape = 1) + 
+  geom_point( aes(x = Metadata_ECMs_Abb, y = lsmean), color="black", shape = 4) + 
+  facet_wrap("Metadata_Ratio")+
+  xlab("ECM Conditions")+ 
+  ylab("Least Square Mean") + 
+  #stat_pvalue_manual(ECMsPvaluestatsig, label = "p.value", y.position = 6, step.increase = 0.1, hide.ns = TRUE) +
+  coord_flip()  
+
+ggsave(filename = "plots/ECMRatiolsmAbb.png",
+       width = 10, height= 10)
+
+```
+
+```{r}
+par(mfrow= c(2,2))
+
+interaction.plot(C1C4$Metadata_Time, C1C4$Metadata_Ratio, log(C1C4$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)", main = "Collagen ICollagen IV")
+
+interaction.plot(C1D$Metadata_Time, C1D$Metadata_Ratio, log(C1D$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)", main = "Collagen IDecorin")
+
+interaction.plot(C1F$Metadata_Time, C1F$Metadata_Ratio, log(C1F$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)", main = "Collagen IFibronectin")
+
+interaction.plot(C1HA$Metadata_Time, C1HA$Metadata_Ratio, log(C1HA$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IHyaluronic Acid")
+
+par(mfrow= c(2,2))
+interaction.plot(C1L$Metadata_Time, C1L$Metadata_Ratio, log(C1L$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen ILaminin")
+
+interaction.plot(C1O$Metadata_Time, C1O$Metadata_Ratio, log(C1O$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IOsteopontin")
+
+interaction.plot(C1T$Metadata_Time, C1T$Metadata_Ratio, log(C1T$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen ITenascin C")
+
+interaction.plot(C4D$Metadata_Time, C4D$Metadata_Ratio, log(C4D$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVDecorin")
+
+par(mfrow= c(2,2))
+interaction.plot(C4F$Metadata_Time, C4F$Metadata_Ratio, log(C4F$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVFibronectin")
+
+interaction.plot(C4HA$Metadata_Time, C4HA$Metadata_Ratio, log(C4HA$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVHyaluronic Acid")
+
+interaction.plot(C4L$Metadata_Time, C4L$Metadata_Ratio, log(C4L$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVLaminin")
+
+interaction.plot(C4O$Metadata_Time, C4O$Metadata_Ratio, log(C4O$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVOsteopontin")
+
+par(mfrow= c(2,2))
+interaction.plot(C4T$Metadata_Time, C4T$Metadata_Ratio, log(C4T$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Collagen IVTenascin C")
+
+interaction.plot(DF$Metadata_Time, DF$Metadata_Ratio, log(DF$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "DecorinFibronectin")
+
+interaction.plot(HAD$Metadata_Time, HAD$Metadata_Ratio, log(HAD$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Hyaluronic AcidDecorin")
+
+interaction.plot(HAF$Metadata_Time, HAF$Metadata_Ratio, log(HAF$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Hyaluronic AcidFibronectin")
+
+par(mfrow= c(2,2))
+interaction.plot(HAO$Metadata_Time, HAO$Metadata_Ratio, log(HAO$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Hyaluronic AcidOsteopontin")
+
+interaction.plot(LD$Metadata_Time, LD$Metadata_Ratio, log(LD$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "LamininDecorin")
+
+interaction.plot(LF$Metadata_Time, LF$Metadata_Ratio, log(LF$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "LamininFibronectin")
+
+interaction.plot(LHA$Metadata_Time, LHA$Metadata_Ratio, log(LHA$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "LamininHyaluronic Acid")
+
+par(mfrow= c(2,2))
+interaction.plot(LO$Metadata_Time, LO$Metadata_Ratio, log(LO$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "LamininOsteopontin")
+
+interaction.plot(LT$Metadata_Time, LT$Metadata_Ratio, log(LT$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "LamininTenascin C")
+
+interaction.plot(OD$Metadata_Time, OD$Metadata_Ratio, log(OD$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "OsteopontinDecorin")
+
+interaction.plot(OF$Metadata_Time, OF$Metadata_Ratio, log(OF$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "OsteopontinFibronectin")
+
+par(mfrow= c(2,2))
+interaction.plot(TD$Metadata_Time, TD$Metadata_Ratio, log(TD$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Tenascin CDecorin")
+
+interaction.plot(TF$Metadata_Time, TF$Metadata_Ratio, log(TF$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Tenascin CFibronectin")
+
+interaction.plot(THA$Metadata_Time, THA$Metadata_Ratio, log(THA$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Tenascin CHyaluronic Acid")
+
+interaction.plot(TO$Metadata_Time, TO$Metadata_Ratio, log(TO$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Stiffness", ylab = "log(Number of Cells Per Island)",  main = "Tenascin COsteopontin")
+```
+
+```{r}
+interaction.plot(OD$Metadata_Time, OD$Metadata_Ratio, log(OD$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Time", ylab = "log(Number of Cells Per Island)",  main = "OsteopontinDecorin")
+interaction.plot(LT$Metadata_Time, LT$Metadata_Ratio, log(LT$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Time", ylab = "log(Number of Cells Per Island)",  main = "LamininTenascin C")
+interaction.plot(THA$Metadata_Time, THA$Metadata_Ratio, log(THA$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Time", ylab = "log(Number of Cells Per Island)",  main = "Tenascin CHyaluronic Acid")
+interaction.plot(DF$Metadata_Time, DF$Metadata_Ratio, log(DF$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Time", ylab = "log(Number of Cells Per Island)",  main = "DecorinFibronectin")
+interaction.plot(C1O$Metadata_Time, C1O$Metadata_Ratio, log(C1O$Mean_Object_Counts), col = 2:4, trace.label = "Ratio", xlab = "Time", ylab = "log(Number of Cells Per Island)",  main = "Collagen IOsteopontin")
+```
+
+```{r}
+#Time x ECMs
+interaction.plot(filtered10ds_e_phenonocontabb$Metadata_Time, filtered10ds_e_phenonocontabb$Metadata_ECMs_Abb, log(filtered10ds_e_phenonocontabb$Mean_Object_Counts), col = 1:9, trace.label = "ECM", ylab = "log(Number of Cells on Island)", xlab = "Time", legend = TRUE)
+
+#ECMs x Time
+interaction.plot(filtered10ds_e_phenonocontabb$Metadata_ECMs_Abb, filtered10ds_e_phenonocontabb$Metadata_Time, log(filtered10ds_e_phenonocontabb$Mean_Object_Counts), col = 1:9, trace.label = "Time", ylab = "log(Number of Cells on Island)", xlab = "Time", las = 2)
+#ECMs x Ratio
+interaction.plot(filtered10ds_e_phenonocontabb$Metadata_ECMs_Abb, filtered10ds_e_phenonocontabb$Metadata_Ratio, log(filtered10ds_e_phenonocontabb$Mean_Object_Counts), col = 1:9, trace.label = "Ratio", ylab = "log(Number of Cells on Island)", xlab = "ECMs", las = 2)
+
+#Ratio x ECM
+interaction.plot(filtered10ds_e_phenonocontabb$Metadata_Ratio, filtered10ds_e_phenonocontabb$Metadata_ECMs_Abb, log(filtered10ds_e_phenonocontabb$Mean_Object_Counts), col = 1:9, trace.label = "ECMs", ylab = "log(Number of Cells on Island)", xlab = "Ratio", las = 1.5)
+```
+
+
